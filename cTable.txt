@@ -1,0 +1,59 @@
+create table lamudi
+(
+
+	LM_Listing_URL TEXT,
+
+	LM_Agente TINYINT(1),
+	LM_Tipo_de_inmueble VARCHAR(30),
+
+	LM_Superficie FLOAT,
+	LM_Recamaras INTEGER,
+	LM_Banos FLOAT,
+
+	LM_Nivel INTEGER,
+	LM_Plantas INTEGER,
+	LM_Disponible_a_partir_de TEXT,
+	LM_Conservacion TEXT,
+
+	LM_Titulo TEXT,
+	LM_Descripcion TEXT,
+
+	LM_Precio FLOAT,
+	LM_Moneda VARCHAR(5),
+
+	LM_Estado TEXT,
+	LM_Municipio_o_Delegacion TEXT,
+	LM_Colonia TEXT,
+
+	LM_Nombre TEXT,
+	LM_Telefono_de_la_oficina TEXT,
+	LM_Telefono_movil TEXT,
+	LM_Telefono_adicional_de_contacto TEXT,
+
+	`LM_Construido_(Año)` INTEGER,
+	LM_Estacionamientos INTEGER,
+	LM_Amueblado TINYINT(1),
+
+	LM_Categoria TEXT,
+	LM_Direccion TEXT,
+
+	LM_Latitude FLOAT,
+	LM_Longitude FLOAT,
+
+	LM_Condiciones_de_precio TEXT,
+	`LM_Deposito/Aval` TEXT,
+	LM_Mantenimiento FLOAT,
+	LM_Comision_del_agente FLOAT,
+
+	LM_Photo_1 TEXT,
+	LM_Photo_2 TEXT,
+	LM_Photo_3 TEXT,
+	LM_Photo_4 TEXT,
+	LM_Photo_5 TEXT,
+	LM_Photo_6 TEXT,
+	LM_Photo_7 TEXT,
+	LM_Photo_8 TEXT,
+	LM_Photo_9 TEXT,
+	LM_Photo_10 TEXT
+
+) DEFAULT CHARSET=utf8;
