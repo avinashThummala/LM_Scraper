@@ -27,12 +27,19 @@ class LMSpider(scrapy.Spider):
 
     def __init__(self):
 
+        firefoxProfile = webdriver.FirefoxProfile()
+        firefoxProfile.set_preference('permissions.default.stylesheet', 2)
+        firefoxProfile.set_preference('permissions.default.image', 2)
+        firefoxProfile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
+
+        self.driver = webdriver.Firefox(firefox_profile=firefoxProfile)
+
         """
-        self.driver = webdriver.Firefox()
-        """
+        If you have PhantomJS 2.0 installed, use this code. Otherwise stick with usage of a Firefox webdriver
 
         self.driver = webdriver.PhantomJS(service_args=['--load-images=no'])
         self.driver.set_window_size(1120, 550)
+        """
 
         self.enterEmailInfo()
 
@@ -218,8 +225,6 @@ class LMSpider(scrapy.Spider):
 
             yield newItem
         
-        """                        
         if not shouldExit:                
-            yield Request(nextURL, callback=self.parse)        
-        """            
+            yield Request(nextURL, callback=self.parse)            
                                   

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import sys
-import MySQLdb
-import hashlib
+import sys, MySQLdb, hashlib, re
 from scrapy.exceptions import DropItem
 from scrapy.http import Request
 
@@ -10,7 +8,7 @@ class LamudiPipeline(object):
 
 	def __init__(self):
 
-		self.conn = MySQLdb.connect(user='root', passwd='baggio', db='pyScrapper', host='localhost', charset="utf8", use_unicode=True)
+		self.conn = MySQLdb.connect(user='root', passwd='baggio', db='pyScraper', host='localhost', charset="utf8", use_unicode=True)
 		self.cursor = self.conn.cursor()
 
 	def getInteger(self, intStr):
@@ -40,7 +38,7 @@ class LamudiPipeline(object):
 		else:
 			return None			
 
-	def process_item(self, item, spider): 
+	def process_item(self, newItem, spider): 
 
 		if newItem['LM_Amueblado']:
 			newItem['LM_Amueblado']=1
@@ -93,7 +91,7 @@ class LamudiPipeline(object):
 					newItem['LM_Direccion'].encode('utf-8'),
 
 					self.getCoordinate(newItem['LM_Latitude']),				
-					self.getCoordinate(newItem['LM_Latitude']),											
+					self.getCoordinate(newItem['LM_Longitude']),											
 
 					newItem['LM_Condiciones_de_precio'].encode('utf-8'),
 					newItem['LM_Deposito_Aval'].encode('utf-8'),
@@ -113,8 +111,6 @@ class LamudiPipeline(object):
 			))
 
 			self.conn.commit()
-
-			return item
 
 		except MySQLdb.Error, e:
 			print "Error %d: %s" % (e.args[0], e.args[1])	       
