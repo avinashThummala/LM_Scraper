@@ -12,7 +12,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-DOMAIN = 'http://lamudi.com.mx'
+DOMAIN = 'lamudi.com.mx'
 URL = 'http://lamudi.com.mx/todos'
 
 dummyURL = 'http://www.lamudi.com.mx/habitaciones-en-renta-contrato-por-un-ao-a-5min-de-ave-constituyentes-252258-16.html?s_special=all&s_dir=desc&disable_previous=true'
@@ -148,7 +148,7 @@ class LMSpider(scrapy.Spider):
 
         hxs = Selector(response)
 
-        nextURL = hxs.xpath('//div[@class=\'pagination\']/ul/li[last()]/a/@href').extract()[0]
+        nextURL = 'http://lamudi.com.mx/'+hxs.xpath('//div[@class=\'pagination\']/ul/li[last()]/a/@href').extract()[0]
         shouldExit = False
 
         if response.url == nextURL:
