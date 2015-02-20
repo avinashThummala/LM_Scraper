@@ -5,6 +5,7 @@ import scrapy
 class LamudiItem(scrapy.Item):
 
 	LM_Listing_URL = scrapy.Field()
+	LM_Ad_Code = scrapy.Field()
 
 	LM_Agente = scrapy.Field()
 	LM_Tipo_de_inmueble = scrapy.Field()

@@ -11,6 +11,15 @@ class LamudiPipeline(object):
 		self.conn = MySQLdb.connect(user='root', passwd='baggio', db='pyScraper', host='localhost', charset="utf8", use_unicode=True)
 		self.cursor = self.conn.cursor()
 
+	def getCorrectAdCode(self, aStr):
+
+		aStr = re.sub("Clave del Inmueble Lamudi:", '', aStr)
+
+		if aStr:
+			return aStr.strip()
+		else:
+			return ''						
+
 	def getInteger(self, intStr):
 
 		intStr = re.sub("[^0123456789-]", '', intStr)
@@ -50,11 +59,12 @@ class LamudiPipeline(object):
 			self.cursor.execute("""INSERT INTO lamudi VALUES (
 
 				%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-				%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s 
+				%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s 
 				        	
 				)""", (
 
 					newItem['LM_Listing_URL'].encode('utf-8'),
+					self.getCorrectAdCode(newItem['LM_Ad_Code']).encode('utf-8'),
 
 					newItem['LM_Agente'],
 					newItem['LM_Tipo_de_inmueble'].encode('utf-8'),
@@ -114,4 +124,4 @@ class LamudiPipeline(object):
 
 		except MySQLdb.Error, e:
 			print "Error %d: %s" % (e.args[0], e.args[1])	       
-			return item
+			return newItem

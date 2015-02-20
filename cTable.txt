@@ -2,6 +2,7 @@ create table lamudi
 (
 
 	LM_Listing_URL TEXT,
+	LM_Ad_Code VARCHAR(30),
 
 	LM_Agente TINYINT(1),
 	LM_Tipo_de_inmueble VARCHAR(30),

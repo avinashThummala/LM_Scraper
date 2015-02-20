@@ -50,6 +50,17 @@ class LMSpider(scrapy.Spider):
         except:    
             return ''
 
+    def extractAdCode(self, xPathStr):
+
+        for x in self.driver.find_elements_by_xpath(xPathStr):
+
+            x=x.text.strip()
+
+            if x:
+                return x               
+
+        return ''
+
     def extractDescription(self, xPathStr):
 
         desc = ''
@@ -197,6 +208,7 @@ class LMSpider(scrapy.Spider):
                         
             self.getListOfPhotos(newItem)
 
+            newItem['LM_Ad_Code'] = self.extractAdCode("//div[@class=\'property-id\']/p")
             newItem['LM_Nombre'] = self.extractText( "//p[@class=\'contact-name\']/strong")
 
             """
@@ -211,13 +223,15 @@ class LMSpider(scrapy.Spider):
             self.driver.find_element_by_xpath("//a[@class=\'btn btn-primary phone-agent-button\']").click()
 
             try:
-                oPhone = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, u"//table[@class=\'table-striped phone-link\']/tbody")) )            
+                oPhone = WebDriverWait(self.driver, 60).until(EC.presence_of_element_located((By.XPATH, u"//table[@class=\'table-striped phone-link\']/tbody")) )            
                 
                 newItem['LM_Telefono_de_la_oficina'] = self.extractText( u"//table[@class=\'table-striped phone-link\']/tbody/tr/td[text()=\'Tel\xe9fono de la oficina:\']/following-sibling::td")
                 newItem['LM_Telefono_movil'] = self.extractText( u"//table[@class=\'table-striped phone-link\']/tbody/tr/td[text()=\'Tel\xe9fono M\xf3vil:\']/following-sibling::td")
                 newItem['LM_Telefono_adicional_de_contacto'] = self.extractText( u"//table[@class=\'table-striped phone-link\']/tbody/tr/td[text()=\'Tel\xe9fono adicional de contacto:\']/following-sibling::td")
 
             except:
+
+                print "Unable to load agent's phone numbers even after waiting for 60 seconds"
 
                 newItem['LM_Telefono_de_la_oficina'] = ''
                 newItem['LM_Telefono_movil'] = ''
