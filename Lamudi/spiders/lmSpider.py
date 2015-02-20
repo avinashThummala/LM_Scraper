@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import scrapy, sys
+from level3 import *
 from Lamudi.items import LamudiItem
 
 from scrapy.http import Request
@@ -21,9 +22,7 @@ class LMSpider(scrapy.Spider):
 
     name = 'lmspider'
     allowed_domains = [DOMAIN]
-    start_urls = [
-        URL
-    ]
+    start_urls = getStartURLS()
 
     def __init__(self):
 
@@ -232,7 +231,7 @@ class LMSpider(scrapy.Spider):
 
             except:
 
-                print "Either the agent's phone numbers don't exist or was nnable to load them even after 180 seconds"
+                print "Either the agent's phone numbers don't exist or was unable to load them even after 180 seconds"
 
                 newItem['LM_Telefono_de_la_oficina'] = ''
                 newItem['LM_Telefono_movil'] = ''
