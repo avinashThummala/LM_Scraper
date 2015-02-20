@@ -70,7 +70,6 @@ class LMSpider(scrapy.Spider):
 
         return desc            
 
-
     def extractAttribute(self, xPathStr, attrStr):
 
         try:
@@ -99,11 +98,11 @@ class LMSpider(scrapy.Spider):
 
     def enterEmailInfo(self): 
 
-        self.driver.get(dummyURL) 
-        self.driver.find_element_by_xpath("//a[@class=\'btn btn-primary phone-agent-button\']").click()
-
         try:
-            emailTextField = WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_email")) )
+            self.driver.get(dummyURL) 
+            self.driver.find_element_by_xpath("//a[@class=\'btn btn-primary phone-agent-button\']").click()
+
+            emailTextField = WebDriverWait(self.driver, 180).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_email")) )
             emailTextField.send_keys('dhthummala@gmail.com')
 
             self.driver.find_element_by_id("RequestPhoneForm_acceptemailoffers").click()                        
@@ -220,10 +219,12 @@ class LMSpider(scrapy.Spider):
             else:
                 newItem['LM_Agente'] = 0      
 
-            self.driver.find_element_by_xpath("//a[@class=\'btn btn-primary phone-agent-button\']").click()
-
             try:
-                oPhone = WebDriverWait(self.driver, 60).until(EC.presence_of_element_located((By.XPATH, u"//table[@class=\'table-striped phone-link\']/tbody")) )            
+
+                pButton = self.driver.find_element_by_xpath("//a[@class=\'btn btn-primary phone-agent-button\']")
+                pButton.click()
+
+                oPhone = WebDriverWait(self.driver, 180).until(EC.presence_of_element_located((By.XPATH, u"//table[@class=\'table-striped phone-link\']/tbody")) )            
                 
                 newItem['LM_Telefono_de_la_oficina'] = self.extractText( u"//table[@class=\'table-striped phone-link\']/tbody/tr/td[text()=\'Tel\xe9fono de la oficina:\']/following-sibling::td")
                 newItem['LM_Telefono_movil'] = self.extractText( u"//table[@class=\'table-striped phone-link\']/tbody/tr/td[text()=\'Tel\xe9fono M\xf3vil:\']/following-sibling::td")
@@ -231,7 +232,7 @@ class LMSpider(scrapy.Spider):
 
             except:
 
-                print "Unable to load agent's phone numbers even after waiting for 60 seconds"
+                print "Either the agent's phone numbers don't exist or was nnable to load them even after 180 seconds"
 
                 newItem['LM_Telefono_de_la_oficina'] = ''
                 newItem['LM_Telefono_movil'] = ''
@@ -239,6 +240,5 @@ class LMSpider(scrapy.Spider):
 
             yield newItem
         
-        if not shouldExit:                
-            yield Request(nextURL, callback=self.parse)            
-                                  
+        if not shouldExit:
+            yield Request(nextURL, callback=self.parse)

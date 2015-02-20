@@ -9,6 +9,8 @@
 #
 
 BOT_NAME = 'Lamudi'
+DOWNLOAD_TIMEOUT = 6000
+CONCURRENT_REQUESTS = 5
 
 SPIDER_MODULES = ['Lamudi.spiders']
 NEWSPIDER_MODULE = 'Lamudi.spiders'
