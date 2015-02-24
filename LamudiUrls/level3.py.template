@@ -1,0 +1,7 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+def getStartURLS():
+	return startURLS
+
+startURLS = 
