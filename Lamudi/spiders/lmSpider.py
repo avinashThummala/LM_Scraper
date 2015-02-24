@@ -9,12 +9,14 @@ from scrapy.http import Request
 from scrapy import Selector
 from selenium import webdriver
 
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 DOMAIN = 'lamudi.com.mx'
-URL = 'http://lamudi.com.mx/todos'
+URL_PREFIX = 'http://'+DOMAIN
+WAIT_TIME_FOR_ELEMENT = 40
 
 dummyURL = 'http://www.lamudi.com.mx/habitaciones-en-renta-contrato-por-un-ao-a-5min-de-ave-constituyentes-252258-16.html?s_special=all&s_dir=desc&disable_previous=true'
 
@@ -26,18 +28,18 @@ class LMSpider(scrapy.Spider):
 
     def __init__(self):
 
+        options = webdriver.ChromeOptions()
+        options.add_extension("Block-image_v1.0.crx")
+
+        self.driver = webdriver.Chrome(chrome_options = options)        
+
+        """
         firefoxProfile = webdriver.FirefoxProfile()
         firefoxProfile.set_preference('permissions.default.stylesheet', 2)
         firefoxProfile.set_preference('permissions.default.image', 2)
         firefoxProfile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
 
         self.driver = webdriver.Firefox(firefox_profile=firefoxProfile)
-
-        """
-        If you have PhantomJS 2.0 installed, use this code. Otherwise stick with usage of a Firefox webdriver
-
-        self.driver = webdriver.PhantomJS(service_args=['--load-images=no'])
-        self.driver.set_window_size(1120, 550)
         """
 
         self.enterEmailInfo()
@@ -95,23 +97,19 @@ class LMSpider(scrapy.Spider):
             if index>9:
                 break
 
-    def enterEmailInfo(self): 
+    def enterEmailInfo(self):
 
-        try:
-            self.driver.get(dummyURL) 
-            self.driver.find_element_by_xpath("//a[@class=\'btn btn-primary phone-agent-button\']").click()
+        self.driver.get(dummyURL) 
 
-            emailTextField = WebDriverWait(self.driver, 180).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_email")) )
-            emailTextField.send_keys('dhthummala@gmail.com')
+        enterEmailButton = WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//a[@class=\'btn btn-primary phone-agent-button\']")) )
+        enterEmailButton.click()        
 
-            self.driver.find_element_by_id("RequestPhoneForm_acceptemailoffers").click()                        
-            self.driver.find_element_by_xpath("//form[@id=\'form-request-phone\']/fieldset/button").click()
+        emailTextField = WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_email")) )
+        emailTextField.send_keys('dhthummala@gmail.com')
 
-        except:
-            """
-                Need to try another dummy url.
-                Have a couple of them in place
-            """
+        self.driver.find_element_by_id("RequestPhoneForm_acceptemailoffers").click()                        
+        self.driver.find_element_by_xpath("//form[@id=\'form-request-phone\']/fieldset/button").click()
+
 
     def extractLocation(self, newItem):
 
@@ -165,8 +163,7 @@ class LMSpider(scrapy.Spider):
 
         for url in response.xpath("//div[@id=\'listings\']/article/header/h4/a/@href").extract():
 
-            if not url.startswith('http://'):
-                url= DOMAIN + url    
+            url=URL_PREFIX+url    
 
             newItem = LamudiItem()    
             newItem['LM_Listing_URL'] = url
@@ -217,13 +214,13 @@ class LMSpider(scrapy.Spider):
                 newItem['LM_Agente'] = 1
             else:
                 newItem['LM_Agente'] = 0      
-
+     
             try:
 
                 pButton = self.driver.find_element_by_xpath("//a[@class=\'btn btn-primary phone-agent-button\']")
                 pButton.click()
 
-                oPhone = WebDriverWait(self.driver, 180).until(EC.presence_of_element_located((By.XPATH, u"//table[@class=\'table-striped phone-link\']/tbody")) )            
+                oPhone = WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, u"//table[@class=\'table-striped phone-link\']/tbody")) )            
                 
                 newItem['LM_Telefono_de_la_oficina'] = self.extractText( u"//table[@class=\'table-striped phone-link\']/tbody/tr/td[text()=\'Tel\xe9fono de la oficina:\']/following-sibling::td")
                 newItem['LM_Telefono_movil'] = self.extractText( u"//table[@class=\'table-striped phone-link\']/tbody/tr/td[text()=\'Tel\xe9fono M\xf3vil:\']/following-sibling::td")
@@ -231,7 +228,7 @@ class LMSpider(scrapy.Spider):
 
             except:
 
-                print "Either the agent's phone numbers don't exist or was unable to load them even after 180 seconds"
+                print "Either the agent's phone numbers don't exist or was unable to load them even after "+str(WAIT_TIME_FOR_ELEMENT)+" seconds"
 
                 newItem['LM_Telefono_de_la_oficina'] = ''
                 newItem['LM_Telefono_movil'] = ''
