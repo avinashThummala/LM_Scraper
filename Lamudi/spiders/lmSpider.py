@@ -112,10 +112,16 @@ class LMSpider(scrapy.Spider):
         enterEmailButton = WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//a[@class=\'btn show-phone-action\']")) )
         enterEmailButton.click()        
 
+        self.driver.save_screenshot('verify-1.png')
+
         emailTextField = WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_email")) )
+        self.driver.execute_script(' document.getElementById("RequestPhoneForm_email").value="dhthummala@gmail.com"; ')
+        """        
         emailTextField.send_keys('dhthummala@gmail.com')
+        """
 
         self.driver.find_element_by_id("RequestPhoneForm_acceptemailoffers").click()                        
+        self.driver.save_screenshot('verify-2.png')
         self.driver.find_element_by_xpath("//form[@id=\'form-request-phone\']/fieldset/button").click()
 
 
