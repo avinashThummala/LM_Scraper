@@ -4,10 +4,14 @@
 import scrapy, sys
 from level3 import *
 from Lamudi.items import LamudiItem
+from xvfbwrapper import Xvfb
 
 from scrapy.http import Request
 from scrapy import Selector
 from selenium import webdriver
+
+from scrapy import signals
+from scrapy.xlib.pydispatch import dispatcher
 
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -16,9 +20,9 @@ from selenium.webdriver.support import expected_conditions as EC
 
 DOMAIN = 'lamudi.com.mx'
 URL_PREFIX = 'http://'+DOMAIN
-WAIT_TIME_FOR_ELEMENT = 40
+WAIT_TIME_FOR_ELEMENT = 5
 
-dummyURL = 'http://www.lamudi.com.mx/habitaciones-en-renta-contrato-por-un-ao-a-5min-de-ave-constituyentes-252258-16.html?s_special=all&s_dir=desc&disable_previous=true'
+dummyURL = 'http://www.lamudi.com.mx/tlalpan-a-una-calle-insurgentes-sur-atras-hospital-san-rafael-110167-16.html'
 
 class LMSpider(scrapy.Spider):
 
@@ -28,21 +32,25 @@ class LMSpider(scrapy.Spider):
 
     def __init__(self):
 
+        """
+        dispatcher.connect(self.on_spider_closed, signals.spider_closed)
+        self.xvfb.start()
+
         options = webdriver.ChromeOptions()
         options.add_extension("Block-image_v1.0.crx")
 
-        self.driver = webdriver.Chrome(chrome_options = options)        
-
+        self.driver = webdriver.Chrome(chrome_options = options)
         """
-        firefoxProfile = webdriver.FirefoxProfile()
-        firefoxProfile.set_preference('permissions.default.stylesheet', 2)
-        firefoxProfile.set_preference('permissions.default.image', 2)
-        firefoxProfile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
 
-        self.driver = webdriver.Firefox(firefox_profile=firefoxProfile)
-        """
+        self.driver = webdriver.PhantomJS(service_args=['--load-images=no'])
+        self.driver.maximize_window()         
 
         self.enterEmailInfo()
+
+    """        
+    def on_spider_closed(spider, reason):
+        self.xvfb.stop()        
+    """
 
     def extractText(self, xPathStr):
 
@@ -99,9 +107,9 @@ class LMSpider(scrapy.Spider):
 
     def enterEmailInfo(self):
 
-        self.driver.get(dummyURL) 
+        self.driver.get(dummyURL)
 
-        enterEmailButton = WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//a[@class=\'btn btn-primary phone-agent-button\']")) )
+        enterEmailButton = WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//a[@class=\'btn show-phone-action\']")) )
         enterEmailButton.click()        
 
         emailTextField = WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_email")) )

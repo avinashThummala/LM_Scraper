@@ -1,0 +1,4 @@
+*.log
+Lamudi/*.pyc
+Lamudi/spiders/*.pyc
+*.png
