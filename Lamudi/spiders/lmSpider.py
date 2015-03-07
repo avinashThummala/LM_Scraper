@@ -30,21 +30,38 @@ class LMSpider(scrapy.Spider):
     allowed_domains = [DOMAIN]
     start_urls = getStartURLS()
 
+    def initiateDriver(self):
+
+        options = webdriver.ChromeOptions()
+        options.add_extension("Block-image_v1.0.crx")
+
+        self.driver = webdriver.Chrome(chrome_options = options) 
+        self.driver.set_page_load_timeout(60)
+        self.driver.maximize_window()
+
+    def loadUrl(self, url):
+
+        try:
+            self.driver.get(url)
+        except:
+
+            print "**********Get URL timed out**********"
+            self.driver.quit()
+
+            self.initiateDriver()
+            self.loadUrl(url)              
+
     def __init__(self):
 
         """
         dispatcher.connect(self.on_spider_closed, signals.spider_closed)
         self.xvfb.start()
 
-        options = webdriver.ChromeOptions()
-        options.add_extension("Block-image_v1.0.crx")
-
-        self.driver = webdriver.Chrome(chrome_options = options)
-        """
-
         self.driver = webdriver.PhantomJS(service_args=['--load-images=no'])
         self.driver.maximize_window()         
+        """
 
+        self.initiateDriver()
         self.enterEmailInfo()
 
     """        
@@ -109,7 +126,7 @@ class LMSpider(scrapy.Spider):
 
         self.driver.get(dummyURL)
 
-        enterEmailButton = WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//a[@class=\'btn show-phone-action\']")) )
+        enterEmailButton = WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//a[@class=\'btn btn-primary phone-agent-button\']")) )
         enterEmailButton.click()        
 
         emailTextField = WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_email")) )
@@ -179,7 +196,7 @@ class LMSpider(scrapy.Spider):
             newItem = LamudiItem()    
             newItem['LM_Listing_URL'] = url
 
-            self.driver.get(url)
+            self.loadUrl(url)
             
             newItem['LM_Superficie'] = self.extractText(u"//tr[td[@class=\'attribute-label\']/text()=\'Superficie (m\xb2):\']/td[@class=\'value\']")             
             newItem['LM_Recamaras'] = self.extractText( u"//tr[td[@class=\'attribute-label\']/text()=\'Rec\xe1maras:\']/td[@class=\'value\']" )
