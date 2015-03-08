@@ -150,8 +150,8 @@ class LMSpider(scrapy.Spider):
         emailTextField.send_keys('dhthummala@gmail.com')
         """
 
-        self.driver.find_element_by_id("RequestPhoneForm_acceptemailoffers").click()                        
-        self.driver.find_element_by_xpath("//form[@id=\'form-request-phone\']/fieldset/button").click()
+        WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_acceptemailoffers")) ).click()       
+        WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//form[@id=\'form-request-phone\']/fieldset/button")) ).click()
 
     def extractLocation(self, newItem):
 
