@@ -149,6 +149,8 @@ class LMSpider(scrapy.Spider):
 
             WebDriverWait(self.driver, EMAIL_WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_email")) )
             self.driver.execute_script(' document.getElementById("RequestPhoneForm_email").value="dhthummala@gmail.com"; document.getElementById("RequestPhoneForm_acceptemailoffers").checked=true; ')
+
+            self.driver.save_screenshot('Verify.png')
             WebDriverWait(self.driver, EMAIL_WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//form[@id=\'form-request-phone\']/fieldset/button")) ).click()        
 
             """        
