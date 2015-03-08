@@ -4,15 +4,12 @@
 import scrapy, sys, traceback, os, time, urllib2
 from level3 import *
 from Lamudi.items import LamudiItem
-from xvfbwrapper import Xvfb
 
 from scrapy.http import Request
 from scrapy import Selector
-from selenium import webdriver
-
 from scrapy import signals
-from scrapy.xlib.pydispatch import dispatcher
 
+from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -21,7 +18,6 @@ from selenium.webdriver.support import expected_conditions as EC
 DOMAIN = 'lamudi.com.mx'
 URL_PREFIX = 'http://'+DOMAIN
 WAIT_TIME_FOR_ELEMENT = 6
-EMAIL_WAIT_TIME_FOR_ELEMENT = 6
 SLEEP_TIME = 3
 PAGE_LOAD_TIMEOUT = 180
 
@@ -36,17 +32,14 @@ class LMSpider(scrapy.Spider):
     def initiateDriver(self):
 
         self.driver = webdriver.PhantomJS(service_args=['--load-images=no'])
-        self.driver.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
-        self.driver.maximize_window()
-
         """
         options = webdriver.ChromeOptions()
         options.add_extension("Block-image_v1.0.crx")
-
         self.driver = webdriver.Chrome(chrome_options = options) 
+        """
+
         self.driver.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
         self.driver.maximize_window()
-        """
 
         self.enterEmailInfo()        
 
@@ -55,21 +48,13 @@ class LMSpider(scrapy.Spider):
         try:
             self.loadUrl(dummyURL)
 
-            WebDriverWait(self.driver, EMAIL_WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//a[@class=\'btn btn-primary phone-agent-button\']")) ).click()
-
-            """
-            Explicit wait            
-            """            
+            WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//a[@class=\'btn btn-primary phone-agent-button\']")) ).click()
             time.sleep(SLEEP_TIME)
 
-            WebDriverWait(self.driver, EMAIL_WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_email")) )
+            WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_email")) )
             self.driver.execute_script(' document.getElementById("RequestPhoneForm_email").value="dhthummala@gmail.com"; document.getElementById("RequestPhoneForm_acceptemailoffers").checked=true; ')
-            WebDriverWait(self.driver, EMAIL_WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//form[@id=\'form-request-phone\']/fieldset/button")) ).click()        
+            WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//form[@id=\'form-request-phone\']/fieldset/button")) ).click()        
 
-            """        
-            emailTextField.send_keys('dhthummala@gmail.com')
-            WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_acceptemailoffers")) ).click()
-            """
         except:
             print traceback.format_exc()        
 
@@ -80,7 +65,7 @@ class LMSpider(scrapy.Spider):
 
         except:
 
-            print "**********Get URL timed out**********"
+            print "*Get URL timed out*"
  
             if self.driver:
                 self.driver.quit()
@@ -97,11 +82,8 @@ class LMSpider(scrapy.Spider):
 
         try:
             WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//a[@class=\'btn btn-primary phone-agent-button\']")) ).click()
-
-            """
-            Explicit wait            
-            """
             time.sleep(SLEEP_TIME)
+
             oPhone = WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, u"//table[@class=\'table-striped phone-link\']/tbody")) )            
             
             newItem['LM_Telefono_de_la_oficina'] = self.wdExtractText( u"//table[@class=\'table-striped phone-link\']/tbody/tr/td[text()=\'Tel\xe9fono de la oficina:\']/following-sibling::td")
@@ -111,7 +93,7 @@ class LMSpider(scrapy.Spider):
         except:
 
             print "Either the agent's phone numbers don't exist or was unable to load them even after "+str(WAIT_TIME_FOR_ELEMENT)+" seconds"
-            print traceback.format_exc()        
+            print traceback.format_exc()
 
             newItem['LM_Telefono_de_la_oficina'] = ''
             newItem['LM_Telefono_movil'] = ''
@@ -181,14 +163,14 @@ class LMSpider(scrapy.Spider):
 
     def loadPrice(self, pValueStr, newItem):
 
-        newItem['LM_Moneda'] = ''        
-        newItem['LM_Precio'] = ''        
+        newItem['LM_Moneda'] = ''
+        newItem['LM_Precio'] = ''
 
         if pValueStr.startswith('$'):
             newItem['LM_Moneda'] = u'MXN'
 
         elif pValueStr.startswith('US$'):
-            newItem['LM_Moneda'] = u'USD'                    
+            newItem['LM_Moneda'] = u'USD'
 
         pList = pValueStr.split(' ')
 
