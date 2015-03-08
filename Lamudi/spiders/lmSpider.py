@@ -20,7 +20,8 @@ from selenium.webdriver.support import expected_conditions as EC
 
 DOMAIN = 'lamudi.com.mx'
 URL_PREFIX = 'http://'+DOMAIN
-WAIT_TIME_FOR_ELEMENT = 5
+WAIT_TIME_FOR_ELEMENT = 4
+PAGE_LOAD_TIMEOUT = 180
 
 dummyURL = 'http://www.lamudi.com.mx/tlalpan-a-una-calle-insurgentes-sur-atras-hospital-san-rafael-110167-16.html'
 
@@ -32,12 +33,18 @@ class LMSpider(scrapy.Spider):
 
     def initiateDriver(self):
 
+        self.driver = webdriver.PhantomJS(service_args=['--load-images=no'])
+        self.driver.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
+        self.driver.maximize_window()
+
+        """
         options = webdriver.ChromeOptions()
         options.add_extension("Block-image_v1.0.crx")
 
         self.driver = webdriver.Chrome(chrome_options = options) 
-        self.driver.set_page_load_timeout(60)
+        self.driver.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
         self.driver.maximize_window()
+        """
 
     def loadUrl(self, url):
 
@@ -46,21 +53,18 @@ class LMSpider(scrapy.Spider):
         except:
 
             print "**********Get URL timed out**********"
-
+ 
             if self.driver:
                 self.driver.quit()
 
             self.initiateDriver()
-            self.loadUrl(url)              
+            self.loadUrl(url)
 
     def __init__(self):
 
         """
         dispatcher.connect(self.on_spider_closed, signals.spider_closed)
         self.xvfb.start()
-
-        self.driver = webdriver.PhantomJS(service_args=['--load-images=no'])
-        self.driver.maximize_window()         
         """
 
         self.initiateDriver()
@@ -68,7 +72,7 @@ class LMSpider(scrapy.Spider):
 
     """        
     def on_spider_closed(spider, reason):
-        self.xvfb.stop()        
+        self.xvfb.stop()
     """
 
     def extractText(self, xPathStr):
@@ -80,30 +84,36 @@ class LMSpider(scrapy.Spider):
 
     def extractAdCode(self, xPathStr):
 
-        for x in self.driver.find_elements_by_xpath(xPathStr):
+        try:
+            for x in self.driver.find_elements_by_xpath(xPathStr):
 
-            x=x.text.strip()
+                x=x.text.strip()
 
-            if x:
-                return x               
+                if x:
+                    return x
 
-        return ''
+            return ''
+        except:
+            return ''
 
     def extractDescription(self, xPathStr):
 
-        desc = ''
+        try:
+            desc = ''
 
-        for x in self.driver.find_elements_by_xpath(xPathStr):
-            desc += x.text+"\n"
+            for x in self.driver.find_elements_by_xpath(xPathStr):
+                desc += x.text+"\n"
 
-        return desc            
+            return desc
+        except:
+            return ''
 
     def extractAttribute(self, xPathStr, attrStr):
 
         try:
             return self.driver.find_element_by_xpath(xPathStr).get_attribute(attrStr)   
         except:    
-            return ''            
+            return ''
 
 
     def getListOfPhotos(self, newItem):
@@ -114,19 +124,22 @@ class LMSpider(scrapy.Spider):
         for x in vPicList:
             newItem[x] = ''
 
-        index=0
+        try:
+            index=0
 
-        for x in self.driver.find_elements_by_xpath("//div[@class=\'carousel-inner\']/div/a/img"):
-        
-            newItem[vPicList[index]] = x.get_attribute('data-original')
-            index=index+1
+            for x in self.driver.find_elements_by_xpath("//div[@class=\'carousel-inner\']/div/a/img"):
+            
+                newItem[vPicList[index]] = x.get_attribute('data-original')
+                index=index+1
 
-            if index>9:
-                break
+                if index>9:
+                    break
+        except:
+            return
 
     def enterEmailInfo(self):
 
-        self.driver.get(dummyURL)
+        self.loadUrl(dummyURL)
 
         enterEmailButton = WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//a[@class=\'btn btn-primary phone-agent-button\']")) )
         enterEmailButton.click()        
@@ -140,7 +153,6 @@ class LMSpider(scrapy.Spider):
         self.driver.find_element_by_id("RequestPhoneForm_acceptemailoffers").click()                        
         self.driver.find_element_by_xpath("//form[@id=\'form-request-phone\']/fieldset/button").click()
 
-
     def extractLocation(self, newItem):
 
         newItem['LM_Estado'] = ''
@@ -148,22 +160,25 @@ class LMSpider(scrapy.Spider):
         newItem['LM_Colonia'] = ''        
         newItem['LM_Tipo_de_inmueble'] = ''        
 
-        for x in self.driver.find_elements_by_xpath("//ul[@class=\'breadcrumb\']/li[position()>1]/a"):
+        try:
+            for x in self.driver.find_elements_by_xpath("//ul[@class=\'breadcrumb\']/li[position()>1]/a"):
 
-            string = x.get_attribute('title')
+                string = x.get_attribute('title')
 
-            if string.startswith('Estado: '):
-                newItem['LM_Estado'] = string[8:].strip()
+                if string.startswith('Estado: '):
+                    newItem['LM_Estado'] = string[8:].strip()
 
-            elif string.startswith('Municipio: '):
-                newItem['LM_Municipio_o_Delegacion'] = string[11:].strip()        
+                elif string.startswith('Municipio: '):
+                    newItem['LM_Municipio_o_Delegacion'] = string[11:].strip()        
 
-            elif string.startswith(u'\xc1rea: '):
-                newItem['LM_Colonia'] = string[6:].strip()
+                elif string.startswith(u'\xc1rea: '):
+                    newItem['LM_Colonia'] = string[6:].strip()
 
-            else:
-                newItem['LM_Tipo_de_inmueble'] = string.strip()
-                break
+                else:
+                    newItem['LM_Tipo_de_inmueble'] = string.strip()
+                    break
+        except:
+        	return
 
     def loadPrice(self, pValueStr, newItem):
 
@@ -235,10 +250,6 @@ class LMSpider(scrapy.Spider):
 
             newItem['LM_Ad_Code'] = self.extractAdCode("//div[@class=\'property-id\']/p")
             newItem['LM_Nombre'] = self.extractText( "//p[@class=\'contact-name\']/strong")
-
-            """
-            Can be improved
-            """
 
             if newItem['LM_Nombre']:
                 newItem['LM_Agente'] = 1
