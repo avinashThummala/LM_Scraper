@@ -37,6 +37,8 @@ class LMSpider(scrapy.Spider):
         self.driver.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
         self.driver.maximize_window()
 
+        self.enterEmailInfo()
+
         """
         options = webdriver.ChromeOptions()
         options.add_extension("Block-image_v1.0.crx")
@@ -68,7 +70,6 @@ class LMSpider(scrapy.Spider):
         """
 
         self.initiateDriver()
-        self.enterEmailInfo()
 
     """        
     def on_spider_closed(spider, reason):
@@ -144,7 +145,7 @@ class LMSpider(scrapy.Spider):
         WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//a[@class=\'btn btn-primary phone-agent-button\']")) ).click()
 
         WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_email")) )
-        self.driver.execute_script(' document.getElementById("RequestPhoneForm_email").value="dhthummala@gmail.com"; document.getElementById("RequestPhoneForm_acceptemailoffers"),checked=true; ')
+        self.driver.execute_script(' document.getElementById("RequestPhoneForm_email").value="dhthummala@gmail.com"; document.getElementById("RequestPhoneForm_acceptemailoffers").checked=true; ')
         WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//form[@id=\'form-request-phone\']/fieldset/button")) ).click()        
 
         """        
@@ -256,7 +257,6 @@ class LMSpider(scrapy.Spider):
                 newItem['LM_Agente'] = 0      
      
             try:
-
                 pButton = self.driver.find_element_by_xpath("//a[@class=\'btn btn-primary phone-agent-button\']")
                 pButton.click()
 
@@ -265,9 +265,7 @@ class LMSpider(scrapy.Spider):
                 newItem['LM_Telefono_de_la_oficina'] = self.extractText( u"//table[@class=\'table-striped phone-link\']/tbody/tr/td[text()=\'Tel\xe9fono de la oficina:\']/following-sibling::td")
                 newItem['LM_Telefono_movil'] = self.extractText( u"//table[@class=\'table-striped phone-link\']/tbody/tr/td[text()=\'Tel\xe9fono M\xf3vil:\']/following-sibling::td")
                 newItem['LM_Telefono_adicional_de_contacto'] = self.extractText( u"//table[@class=\'table-striped phone-link\']/tbody/tr/td[text()=\'Tel\xe9fono adicional de contacto:\']/following-sibling::td")
-
             except:
-
                 print "Either the agent's phone numbers don't exist or was unable to load them even after "+str(WAIT_TIME_FOR_ELEMENT)+" seconds"
 
                 newItem['LM_Telefono_de_la_oficina'] = ''
