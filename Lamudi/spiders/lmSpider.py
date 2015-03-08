@@ -91,8 +91,8 @@ class LMSpider(scrapy.Spider):
             newItem['LM_Telefono_adicional_de_contacto'] = self.wdExtractText( u"//table[@class=\'table-striped phone-link\']/tbody/tr/td[text()=\'Tel\xe9fono adicional de contacto:\']/following-sibling::td")
 
         except:
-
             print "Either the agent's phone numbers don't exist or was unable to load them even after "+str(WAIT_TIME_FOR_ELEMENT)+" seconds"
+            print "URL -> "+url
             print traceback.format_exc()
 
             newItem['LM_Telefono_de_la_oficina'] = ''
