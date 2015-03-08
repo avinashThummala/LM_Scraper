@@ -1,5 +1,5 @@
 # LM_Scraper
-A Scrapy, Selenium, Firefox based scraper for LM
+A Scrapy, Selenium, PhantomJS based scraper for LM
 
 First of all setup your MySQL server. Lets assume that you have created a database "pyScraper".
 
@@ -22,7 +22,8 @@ Now use "pip" to install "scrapy"
 
 <strong>*sudo -H pip install scrapy*</strong>
 
-This scraper needs to click href links. So, I used a Chrome web driver in conjunction with Selenium.The relevant binary files can be obtained from <a href="http://chromedriver.storage.googleapis.com/index.html?path=2.14/">here</a>.
+This scraper is based on PhantomJS 2.0. It wouldn't work with the previous version of PhantomJS, as they don't support
+clicking an anchor element. 
 
 Finally you need to plug in your database related info in <strong>"Lamudi/pipelines.py" (Line 11)</strong>.
 Thats it!!
