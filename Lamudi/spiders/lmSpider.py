@@ -22,6 +22,7 @@ DOMAIN = 'lamudi.com.mx'
 URL_PREFIX = 'http://'+DOMAIN
 WAIT_TIME_FOR_ELEMENT = 6
 EMAIL_WAIT_TIME_FOR_ELEMENT = 6
+SLEEP_TIME = 3
 PAGE_LOAD_TIMEOUT = 180
 
 dummyURL = 'http://www.lamudi.com.mx/tlalpan-a-una-calle-insurgentes-sur-atras-hospital-san-rafael-110167-16.html'
@@ -52,14 +53,14 @@ class LMSpider(scrapy.Spider):
     def enterEmailInfo(self):
 
         try:
-            self.loadUrl(dummyURL, 1)
+            self.loadUrl(dummyURL)
 
             WebDriverWait(self.driver, EMAIL_WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//a[@class=\'btn btn-primary phone-agent-button\']")) ).click()
 
             """
-            Explicit wait
-            time.sleep(3)
+            Explicit wait            
             """            
+			time.sleep(SLEEP_TIME)
 
             WebDriverWait(self.driver, EMAIL_WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_email")) )
             self.driver.execute_script(' document.getElementById("RequestPhoneForm_email").value="dhthummala@gmail.com"; document.getElementById("RequestPhoneForm_acceptemailoffers").checked=true; ')
@@ -72,38 +73,35 @@ class LMSpider(scrapy.Spider):
         except:
             print traceback.format_exc()        
 
-    def loadUrl(self, url, numAttempt):
+    def loadUrl(self, url):
 
         try:
             self.driver.get(url)
 
         except:
-        	
+
             print "**********Get URL timed out**********"
  
-            if self.driver and numAttempt>3:
-
+            if self.driver:
                 self.driver.quit()
-                self.initiateDriver()
-                self.loadUrl(url, 1)
 
-            elif not self.driver:
-                self.initiateDriver()
-                self.loadUrl(url, 1)
-
-            else:
-                self.loadUrl(url, numAttempt+1)
+			self.initiateDriver()
+            self.loadUrl(url)			
 
     def __init__(self):
         self.initiateDriver()
 
     def getAgentTelephone(self, url, newItem):
 
-        self.loadUrl(url, 1)
+        self.loadUrl(url)
 
         try:
             WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//a[@class=\'btn btn-primary phone-agent-button\']")) ).click()
 
+            """
+            Explicit wait            
+            """
+            time.sleep(SLEEP_TIME)
             oPhone = WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, u"//table[@class=\'table-striped phone-link\']/tbody")) )            
             
             newItem['LM_Telefono_de_la_oficina'] = self.wdExtractText( u"//table[@class=\'table-striped phone-link\']/tbody/tr/td[text()=\'Tel\xe9fono de la oficina:\']/following-sibling::td")
