@@ -1,7 +1,7 @@
 #!/usr/bin/python   
 # -*- coding: utf-8 -*-
 
-import scrapy, sys
+import scrapy, sys, traceback
 from level3 import *
 from Lamudi.items import LamudiItem
 from xvfbwrapper import Xvfb
@@ -21,6 +21,7 @@ from selenium.webdriver.support import expected_conditions as EC
 DOMAIN = 'lamudi.com.mx'
 URL_PREFIX = 'http://'+DOMAIN
 WAIT_TIME_FOR_ELEMENT = 4
+EMAIL_WAIT_TIME_FOR_ELEMENT = 8
 PAGE_LOAD_TIMEOUT = 180
 
 dummyURL = 'http://www.lamudi.com.mx/tlalpan-a-una-calle-insurgentes-sur-atras-hospital-san-rafael-110167-16.html'
@@ -140,18 +141,23 @@ class LMSpider(scrapy.Spider):
 
     def enterEmailInfo(self):
 
-        self.loadUrl(dummyURL)
+        try:
 
-        WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//a[@class=\'btn btn-primary phone-agent-button\']")) ).click()
+            self.loadUrl(dummyURL)
 
-        WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_email")) )
-        self.driver.execute_script(' document.getElementById("RequestPhoneForm_email").value="dhthummala@gmail.com"; document.getElementById("RequestPhoneForm_acceptemailoffers").checked=true; ')
-        WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//form[@id=\'form-request-phone\']/fieldset/button")) ).click()        
+            WebDriverWait(self.driver, EMAIL_WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//a[@class=\'btn btn-primary phone-agent-button\']")) ).click()
 
-        """        
-        emailTextField.send_keys('dhthummala@gmail.com')
-        WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_acceptemailoffers")) ).click()
-        """
+            WebDriverWait(self.driver, EMAIL_WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_email")) )
+            self.driver.execute_script(' document.getElementById("RequestPhoneForm_email").value="dhthummala@gmail.com"; document.getElementById("RequestPhoneForm_acceptemailoffers").checked=true; ')
+            WebDriverWait(self.driver, EMAIL_WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.XPATH, "//form[@id=\'form-request-phone\']/fieldset/button")) ).click()        
+
+            """        
+            emailTextField.send_keys('dhthummala@gmail.com')
+            WebDriverWait(self.driver, WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_acceptemailoffers")) ).click()
+            """
+        except:
+            print traceback.format_exc()
+
 
     def extractLocation(self, newItem):
 
@@ -200,7 +206,7 @@ class LMSpider(scrapy.Spider):
 
         hxs = Selector(response)
 
-        nextURL = 'http://lamudi.com.mx/'+hxs.xpath('//div[@class=\'pagination\']/ul/li[last()]/a/@href').extract()[0]
+        nextURL = 'http://lamudi.com.mx'+hxs.xpath('//div[@class=\'pagination\']/ul/li[last()]/a/@href').extract()[0]
         shouldExit = False
 
         if response.url == nextURL:
