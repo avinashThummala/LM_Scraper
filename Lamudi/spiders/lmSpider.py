@@ -60,7 +60,7 @@ class LMSpider(scrapy.Spider):
             """
             Explicit wait            
             """            
-			time.sleep(SLEEP_TIME)
+            time.sleep(SLEEP_TIME)
 
             WebDriverWait(self.driver, EMAIL_WAIT_TIME_FOR_ELEMENT).until(EC.presence_of_element_located((By.ID, "RequestPhoneForm_email")) )
             self.driver.execute_script(' document.getElementById("RequestPhoneForm_email").value="dhthummala@gmail.com"; document.getElementById("RequestPhoneForm_acceptemailoffers").checked=true; ')
@@ -85,8 +85,8 @@ class LMSpider(scrapy.Spider):
             if self.driver:
                 self.driver.quit()
 
-			self.initiateDriver()
-            self.loadUrl(url)			
+            self.initiateDriver()
+            self.loadUrl(url)
 
     def __init__(self):
         self.initiateDriver()
