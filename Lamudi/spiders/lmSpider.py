@@ -1,9 +1,10 @@
 #!/usr/bin/python   
 # -*- coding: utf-8 -*-
 
-import scrapy, sys, traceback, os, time, urllib2
+import scrapy, sys, traceback, os, time, urllib2, functools
 from level3 import *
 from Lamudi.items import LamudiItem
+from threading import Thread
 
 from scrapy.http import Request
 from scrapy import Selector
@@ -19,9 +20,13 @@ DOMAIN = 'lamudi.com.mx'
 URL_PREFIX = 'http://'+DOMAIN
 WAIT_TIME_FOR_ELEMENT = 6
 SLEEP_TIME = 3
-PAGE_LOAD_TIMEOUT = 180
-
+PAGE_LOAD_TIMEOUT = 6
+PORT = 65000
 dummyURL = 'http://www.lamudi.com.mx/tlalpan-a-una-calle-insurgentes-sur-atras-hospital-san-rafael-110167-16.html'
+
+"""
+This scraper is based on PhantomJS 2.0, as we need click an anchor
+"""
 
 class LMSpider(scrapy.Spider):
 
@@ -31,16 +36,18 @@ class LMSpider(scrapy.Spider):
 
     def initiateDriver(self):
 
-        self.driver = webdriver.PhantomJS(service_args=['--load-images=no'])
+    	
+        self.driver = webdriver.PhantomJS(executable_path='../Phantomjs_2.0/phantomjs', service_args=['--load-images=no'], port=PORT)
+        
         """
+        In case you want to want to go with chrome
+
         options = webdriver.ChromeOptions()
         options.add_extension("Block-image_v1.0.crx")
-        self.driver = webdriver.Chrome(chrome_options = options) 
+        self.driver = webdriver.Chrome(chrome_options = options)
         """
 
-        self.driver.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
         self.driver.maximize_window()
-
         self.enterEmailInfo()        
 
     def enterEmailInfo(self):
@@ -60,15 +67,22 @@ class LMSpider(scrapy.Spider):
 
     def loadUrl(self, url):
 
+        func = timeout(timeout=PAGE_LOAD_TIMEOUT)(self.driver.get)        
+
         try:
-            self.driver.get(url)
+            print "* Before call to get url *"
+            func(url)
+            print "* After call to get url *"
 
         except:
-
-            print "*Get URL timed out*"
- 
+            
             if self.driver:
+                print "* Get URL has timed out *"
                 self.driver.quit()
+                print "* After driver quit *"
+
+            else:
+                print "* PhantomJS has crashed *"
 
             self.initiateDriver()
             self.loadUrl(url)
@@ -89,6 +103,8 @@ class LMSpider(scrapy.Spider):
             newItem['LM_Telefono_de_la_oficina'] = self.wdExtractText( u"//table[@class=\'table-striped phone-link\']/tbody/tr/td[text()=\'Tel\xe9fono de la oficina:\']/following-sibling::td")
             newItem['LM_Telefono_movil'] = self.wdExtractText( u"//table[@class=\'table-striped phone-link\']/tbody/tr/td[text()=\'Tel\xe9fono M\xf3vil:\']/following-sibling::td")
             newItem['LM_Telefono_adicional_de_contacto'] = self.wdExtractText( u"//table[@class=\'table-striped phone-link\']/tbody/tr/td[text()=\'Tel\xe9fono adicional de contacto:\']/following-sibling::td")
+
+            print "The telephone numbers are -> "+newItem['LM_Telefono_de_la_oficina']+" "+newItem['LM_Telefono_movil']+" "+newItem['LM_Telefono_adicional_de_contacto']
 
         except:
             print "Either the agent's phone numbers don't exist or was unable to load them even after "+str(WAIT_TIME_FOR_ELEMENT)+" seconds"
@@ -244,3 +260,42 @@ class LMSpider(scrapy.Spider):
         
         if not shouldExit:
             yield Request(nextURL, callback=self.parse)
+
+"""
+Useful when using phantomjs 2.0
+"""
+def timeout(timeout):
+
+    def deco(func):
+        @functools.wraps(func)
+
+        def wrapper(*args, **kwargs):
+
+            res = [Exception('function [%s] timeout [%s seconds] exceeded!' % (func.__name__, timeout))]
+
+            def newFunc():
+                try:
+                    res[0] = func(*args, **kwargs)
+                except Exception, e:
+                    res[0] = e
+
+            t = Thread(target=newFunc)
+            t.daemon = True
+
+            try:
+                t.start()
+                t.join(timeout)
+            except Exception, je:
+                print 'Error starting thread'
+                raise je
+
+            ret = res[0]
+
+            if isinstance(ret, BaseException):
+                raise ret
+
+            return ret
+
+        return wrapper
+
+    return deco              
