@@ -25,8 +25,13 @@ Now use "pip" to install "scrapy"
 This scraper is based on PhantomJS 2.0. It wouldn't work with the previous version of PhantomJS, as they don't support
 clicking an anchor element. 
 
-Finally you need to plug in your database related info in <strong>"Lamudi/pipelines.py" (Line 11)</strong>.
-Thats it!!
+Please do keep in mind that PhantomJS eats up a lot of memory. Finally you need to plug in your database related info in <strong>"Lamudi/
+pipelines.py" (Line 11)</strong>.
+
+You also need to make sure to provide the path to the phantomjs executable and unblock the port (65,000 in our case). Take a look 
+at the following set of lines:
+<pre><code>PORT = 65000
+self.driver = webdriver.PhantomJS(executable_path='../Phantomjs_2.0/phantomjs', service_args=['--load-images=no'], port=PORT)</code></pre>
 
 Now simply run:
 <strong>scrapy crawl lmspider > output 2>&1</strong>
